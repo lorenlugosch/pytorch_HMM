@@ -49,9 +49,10 @@ class Trainer:
 			train_loss += loss.cpu().data.numpy().item() * batch_size
 			if idx % print_interval == 0:
 				print(loss.item())
-				sampled_x, sampled_z = self.model.sample()
-				print("".join([self.config.Sx[s] for s in sampled_x]))
-				print(sampled_z)
+				for _ in range(5):
+					sampled_x, sampled_z = self.model.sample()
+					print("".join([self.config.Sx[s] for s in sampled_x]))
+					print(sampled_z)
 		train_loss /= num_samples
 		train_acc /= num_samples
 		return train_loss

@@ -5,7 +5,8 @@ from training import Trainer
 
 # Generate datasets from text file
 path = "data"
-config = read_config(path)
+N = 128
+config = read_config(N,path)
 train_dataset, valid_dataset = get_datasets(config)
 checkpoint_path = "."
 
@@ -14,7 +15,7 @@ model = HMM(config=config)
 
 # Train the model
 num_epochs = 10
-trainer = Trainer(model, config, lr=0.0003)
+trainer = Trainer(model, config, lr=0.003)
 trainer.load_checkpoint(checkpoint_path)
 
 for epoch in range(num_epochs):

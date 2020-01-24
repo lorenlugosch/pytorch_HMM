@@ -9,8 +9,8 @@ class Config:
 		self.N = N
 		self.path = path
 
-def read_config(path):
-	config = Config(N=8,path=path)
+def read_config(N, path):
+	config = Config(N=N,path=path)
 	return config
 
 def get_datasets(config):
@@ -73,6 +73,9 @@ class PadAndOneHot:
 		batch_size = len(batch)
 		for index in range(batch_size):
 			x_ = batch[index]
+			if "\n" in x_:
+				print(x_)
+				sys.exit()
 
 			# convert letters to integers
 			x.append([self.Sx.index(c) for c in x_])
