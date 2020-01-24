@@ -92,6 +92,10 @@ class HMM(torch.nn.Module):
 			log_delta[:, t, :] = self.emission_model(x[:,t]) + max_val
 			psi[:, t, :] = argmax_val
 
+		# Get the Viterbi score at the final timestep (each x has different length).
+		log_max = log_delta.max(dim=2)[0]
+		viterbi_scores = torch.gather(log_max, 1, T.view(-1,1) - 1)
+
 		# This next part is a bit tricky to parallelize across the batch,
 		# so we will do it separately for each example.
 		z_star = []
@@ -104,7 +108,7 @@ class HMM(torch.nn.Module):
 
 			z_star.append(z_star_i)
 
-		return z_star
+		return z_star, viterbi_scores
 
 def log_domain_matmul(log_A, log_B, use_max=False):
 	"""
