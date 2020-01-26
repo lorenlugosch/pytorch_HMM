@@ -37,8 +37,10 @@ class HMM(torch.nn.Module):
 		if self.is_cuda: log_alpha = log_alpha.cuda()
 
 		log_alpha[:, 0, :] = self.emission_model(x[:,0]) + log_state_priors
+		print(log_alpha[:, 0, :])
 		for t in range(1, T_max):
 			log_alpha[:, t, :] = self.emission_model(x[:,t]) + self.transition_model(log_alpha[:, t-1, :], use_max=False)
+			print(log_alpha[:, t, :])
 
 		log_sums = log_alpha.logsumexp(dim=2)
 
@@ -72,7 +74,7 @@ class HMM(torch.nn.Module):
 		x : IntTensor of shape (batch size, T_max)
 		T : IntTensor of shape (batch size)
 
-		Find argmax_z log p(x|z) for each (x) in the batch.
+		Find argmax_z log p(z|x) for each (x) in the batch.
 		"""
 		if self.is_cuda:
 			x = x.cuda()
@@ -100,8 +102,7 @@ class HMM(torch.nn.Module):
 		# so we will do it separately for each example.
 		z_star = []
 		for i in range(0, batch_size):
-			z_star_i = [ log_delta[i, T[i] - 1, :].max(dim=1)[1].item() ]
-			#for t in range(T[i] - 2, 0, -1):
+			z_star_i = [ log_delta[i, T[i] - 1, :].max(dim=0)[1].item() ]
 			for t in range(T[i] - 1, 0, -1):
 				z_t = psi[i, t, z_star_i[0]].item()
 				z_star_i.insert(0, z_t)
@@ -126,15 +127,17 @@ def log_domain_matmul(log_A, log_B, use_max=False):
 	This is needed for numerical stability
 	when A and B are probability matrices.
 	"""
-	m = log_A.shape[0]
-	n = log_A.shape[1]
-	p = log_B.shape[1]
+	#m = log_A.shape[0]
+	#n = log_A.shape[1]
+	#p = log_B.shape[1]
 
-	log_A_expanded = torch.stack([log_A] * p, dim=2)
-	log_B_expanded = torch.stack([log_B] * m, dim=0)
+	#log_A_expanded = torch.stack([log_A] * p, dim=2)
+	#log_B_expanded = torch.stack([log_B] * m, dim=0)
 
-	elementwise_sum = log_A_expanded + log_B_expanded
-	out = torch.logsumexp(elementwise_sum, dim=1)
+	#elementwise_sum = log_A_expanded + log_B_expanded
+	#out = torch.logsumexp(elementwise_sum, dim=1)
+
+	out = genbmm.logbmm(log_A.unsqueeze(0).contiguous(), log_B.unsqueeze(1).contiguous())[0]
 
 	return out
 
